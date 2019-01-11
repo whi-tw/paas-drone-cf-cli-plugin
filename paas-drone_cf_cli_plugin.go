@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"code.cloudfoundry.org/cli/plugin"
 )
@@ -24,8 +24,15 @@ type PaaSDronePlugin struct{}
 // 1 should the plugin exits nonzero.
 func (c *PaaSDronePlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	// Ensure that we called the command basic-plugin-command
-	if args[0] == "basic-plugin-command" {
-		fmt.Println("Running the basic-plugin-command")
+	var err error
+	if args[0] == "deploy-drone-server" {
+		err = c.DeployDroneServer(cliConnection, args[1:])
+	}
+	if args[0] == "destroy-drone-server" {
+		err = c.DestroyDroneServer(cliConnection, args[1:])
+	}
+	if err != nil {
+		log.Fatalf("%v", err)
 	}
 }
 
@@ -43,7 +50,7 @@ func (c *PaaSDronePlugin) Run(cliConnection plugin.CliConnection, args []string)
 // to the user in the core commands `cf help`, `cf`, or `cf -h`.
 func (c *PaaSDronePlugin) GetMetadata() plugin.PluginMetadata {
 	return plugin.PluginMetadata{
-		Name: "PaaSPaaSDronePlugin",
+		Name: "PaaSDronePlugin",
 		Version: plugin.VersionType{
 			Major: 1,
 			Minor: 0,
@@ -56,13 +63,24 @@ func (c *PaaSDronePlugin) GetMetadata() plugin.PluginMetadata {
 		},
 		Commands: []plugin.Command{
 			{
-				Name:     "basic-plugin-command",
-				HelpText: "Basic plugin command's help text",
+				Name:     "deploy-drone-server",
+				HelpText: "Deploy a drone server to the current space",
 
 				// UsageDetails is optional
 				// It is used to show help of usage of each command
 				UsageDetails: plugin.Usage{
-					Usage: "basic-plugin-command\n   cf basic-plugin-command",
+					Usage: "cf deploy-drone-server [gitHubClientId] [gitHubClientSecret] [serverSecret]",
+				},
+			},
+
+			{
+				Name:     "destroy-drone-server",
+				HelpText: "Destroy a drone server deployment in the current space",
+
+				// UsageDetails is optional
+				// It is used to show help of usage of each command
+				UsageDetails: plugin.Usage{
+					Usage: "cf destroy-drone-server",
 				},
 			},
 		},
